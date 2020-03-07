@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import argparse
-import os
 import subprocess
 import sys
 from datetime import datetime
@@ -28,11 +27,11 @@ def __measure_internet_speed():
         return False, e
 
 
-def __upload_measurements(_credential, _measurement):
+def __upload_measurements(_credential, _sheet, _measurement):
     try:
         cred = ServiceAccountCredentials.from_json_keyfile_name(_credential, ['https://spreadsheets.google.com/feeds'])
         gc = gspread.authorize(cred)
-        wks = gc.open_by_key('1q4qvTF3gCS5B1sPnh-HsBhfgTQmWg0t2Mo2xIq2E_Fo')
+        wks = gc.open_by_key(_sheet)
         worksheet = wks.get_worksheet(0)
         return True, worksheet.append_row([
             _measurement['date'],
@@ -53,7 +52,11 @@ def __upload_measurements(_credential, _measurement):
 if __name__ == '__main__':
     # parse arguments
     parser = argparse.ArgumentParser(description='Internet speed measurement system.')
-    parser.add_argument('-c', type=str, required=False, action='store', metavar='credential.json')
+    parser.add_argument('-c', type=str, required=False, action='store', dest='credential',
+                        help='credential of google sheet to upload measurement data')
+    parser.add_argument('-s', type=str, required=False, action='store', dest='sheet',
+                        default='1q4qvTF3gCS5B1sPnh-HsBhfgTQmWg0t2Mo2xIq2E_Fo',
+                        help='id of sheet to write measurement data')
     args = parser.parse_args()
 
     # test intenet speed
@@ -63,8 +66,10 @@ if __name__ == '__main__':
         sys.exit("Error measuring internet speed: {}".format(measurement_data))
 
     # if user set a credential, upload the results do google sheets
-    if args.c and os.path.isfile(args.c):
-        print("Writing data do Google Sheets...")
-        upload_ok, upload_data = __upload_measurements(args.c, measurement_data)
+    if args.credential:
+        print("Writing data do sheet '{}'...".format(args.sheet))
+        upload_ok, upload_data = __upload_measurements(args.credential, args.sheet, measurement_data)
         if not upload_ok:
             sys.exit("Error uploading measurement do Google Sheets: {}".format(upload_data))
+    else:
+        print(measurement_data)

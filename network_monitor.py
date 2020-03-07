@@ -18,7 +18,7 @@ if __name__ == '__main__':
         distance = float(speed[4])
         ping = float(speed[5])
         ip = speed[9]
-        # print(speed)
+        print(speed)
 
         scope = ['https://spreadsheets.google.com/feeds']
         cred = ServiceAccountCredentials.from_json_keyfile_name('/Users/diego/Downloads/fincatto-home-key.json', scope)
@@ -26,5 +26,6 @@ if __name__ == '__main__':
         wks = gc.open_by_key('1q4qvTF3gCS5B1sPnh-HsBhfgTQmWg0t2Mo2xIq2E_Fo')
         worksheet = wks.get_worksheet(0)
         row = worksheet.append_row([date, time, srv_id, srv_sponsor, srv_name, ip, distance, ping, download, upload])
+        # print(row)
     except Exception as e:
         print("Error measuring internet speed", e)
